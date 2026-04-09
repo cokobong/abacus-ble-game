@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>주판 BLE 입력 테스트</title>
+  <title>주판 BLE 입력 체크</title>
   <style>
     body {
       margin: 0;
-      padding: 24px;
+      padding: 20px;
       background: #111;
       color: #fff;
       font-family: Arial, sans-serif;
@@ -15,26 +15,28 @@
     }
 
     .wrap {
-      max-width: 720px;
+      max-width: 760px;
       margin: 0 auto;
     }
 
     h1 {
-      margin-bottom: 12px;
+      margin-bottom: 10px;
+    }
+
+    .hint {
+      color: #bbb;
+      font-size: 15px;
+      line-height: 1.6;
+      margin-bottom: 18px;
     }
 
     .card {
-      background: #1e1e1e;
+      background: #1c1c1c;
       border: 1px solid #333;
       border-radius: 16px;
-      padding: 20px;
-      margin-top: 16px;
-    }
-
-    .big {
-      font-size: 72px;
-      font-weight: bold;
-      margin: 16px 0;
+      padding: 18px;
+      margin-top: 14px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.25);
     }
 
     .label {
@@ -43,11 +45,26 @@
       margin-bottom: 8px;
     }
 
-    .result {
-      font-size: 32px;
+    .big {
+      font-size: 72px;
       font-weight: bold;
-      min-height: 40px;
-      margin-top: 12px;
+      line-height: 1.1;
+      margin: 10px 0;
+    }
+
+    .status {
+      min-height: 28px;
+      font-size: 16px;
+      color: #8fd3ff;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+
+    .result {
+      min-height: 42px;
+      font-size: 30px;
+      font-weight: bold;
+      margin-top: 8px;
     }
 
     .ok {
@@ -60,23 +77,22 @@
 
     button {
       font-size: 18px;
-      padding: 12px 18px;
+      padding: 12px 16px;
       margin: 6px;
       border: none;
       border-radius: 10px;
       cursor: pointer;
+      font-weight: bold;
     }
 
     #connectBtn {
       background: #00bcd4;
       color: #000;
-      font-weight: bold;
     }
 
     #newBtn {
       background: #ffc107;
       color: #000;
-      font-weight: bold;
     }
 
     #clearBtn {
@@ -94,28 +110,22 @@
       color: #9fe7ff;
       font-size: 14px;
       overflow-x: auto;
+      margin: 0;
     }
 
-    .status {
-      font-size: 18px;
-      margin-top: 10px;
-      color: #8fd3ff;
-      min-height: 24px;
-    }
-
-    .hint {
-      color: #bbb;
-      font-size: 15px;
-      line-height: 1.6;
+    .small {
+      color: #aaa;
+      font-size: 13px;
+      margin-top: 8px;
     }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <h1>주판 BLE 입력 테스트</h1>
+    <h1>주판 BLE 입력 체크</h1>
     <div class="hint">
-      목표: BLE 연결 후 주판 숫자 입력이 화면에 보이고,<br />
-      디바이스의 파란 OK 버튼을 눌렀을 때 정답 판정이 되는지 확인
+      목표: 휴대폰 Chrome에서 BLE 연결 후,<br>
+      주판 숫자 입력과 디바이스의 파란 OK 버튼이 웹에 전달되는지 확인
     </div>
 
     <div class="card">
@@ -123,6 +133,7 @@
       <button id="newBtn">새 문제</button>
       <button id="clearBtn">표시 초기화</button>
       <div id="status" class="status">대기 중</div>
+      <div class="small">기기 선택창에는 FLEDU_ 로 시작하는 기기만 보이도록 필터링합니다.</div>
     </div>
 
     <div class="card">
@@ -155,7 +166,9 @@
 
     let targetNumber = 0;
     let currentNumber = 0;
-    let lastPacketHex = "";
+
+    const SERVICE_UUID = "674219bc-d86b-4b65-8ea4-9c3e64b857c8";
+    const CHAR_UUID = "329c75cc-17ff-4de5-affd-69c80311a66f";
 
     const statusEl = document.getElementById("status");
     const targetEl = document.getElementById("target");
@@ -187,47 +200,58 @@
 
     async function connectBLE() {
       try {
-        statusEl.textContent = "기기 선택 중...";
-
-        // 서비스 UUID와 캐릭터리스틱 UUID가 동일하게 보였던 기존 분석값 사용
-        const SERVICE_UUID = "674219bc-d86b-4b65-8ea4-9c3e64b857c8";
-        const CHAR_UUID = "329c75cc-17ff-4de5-affd-69c80311a66f";
+        statusEl.textContent = "1) 기기 선택창 여는 중...";
 
         device = await navigator.bluetooth.requestDevice({
-          acceptAllDevices: true,
+          filters: [
+            { namePrefix: "FLEDU_" }
+          ],
           optionalServices: [SERVICE_UUID]
         });
 
-        statusEl.textContent = `선택됨: ${device.name || "이름 없는 기기"}`;
+        statusEl.textContent = "2) 선택된 기기: " + (device.name || "이름 없음");
 
+        device.addEventListener("gattserverdisconnected", () => {
+          statusEl.textContent = "연결이 끊어졌습니다.";
+        });
+
+        statusEl.textContent = "3) GATT 연결 중...";
         server = await device.gatt.connect();
+
+        statusEl.textContent = "4) 서비스 가져오는 중...";
         service = await server.getPrimaryService(SERVICE_UUID);
+
+        statusEl.textContent = "5) 캐릭터리스틱 가져오는 중...";
         characteristic = await service.getCharacteristic(CHAR_UUID);
 
+        statusEl.textContent = "6) Notify 시작 중...";
         await characteristic.startNotifications();
+
         characteristic.addEventListener("characteristicvaluechanged", handleBLE);
 
-        statusEl.textContent = "BLE 연결 완료 / 알림 수신 대기 중";
+        statusEl.textContent = "연결 성공! 주판을 움직이고 OK 버튼을 눌러보세요.";
       } catch (err) {
         console.error(err);
-        statusEl.textContent = "BLE 연결 실패: " + err.message;
+        statusEl.textContent = "BLE 연결 실패: " + err.name + " / " + err.message;
       }
     }
 
     function handleBLE(event) {
       const data = new Uint8Array(event.target.value.buffer);
 
-      lastPacketHex = toHexString(data);
-      rawBoxEl.textContent = lastPacketHex;
+      const hex = toHexString(data);
+      rawBoxEl.textContent = hex;
 
       const decoded = decodeAbacusPacket(data);
       currentNumber = decoded.number;
       currentEl.textContent = currentNumber;
 
       logBoxEl.textContent =
-        "십의 자리 코드: " + decoded.tensHex + " → " + decoded.tens + "\\n" +
-        "일의 자리 코드: " + decoded.onesHex + " → " + decoded.ones + "\\n" +
-        "해석 숫자: " + decoded.number + "\\n" +
+        "패킷 길이: " + data.length + "\n" +
+        "십의 자리 코드: " + decoded.tensHex + " → " + decoded.tens + "\n" +
+        "일의 자리 코드: " + decoded.onesHex + " → " + decoded.ones + "\n" +
+        "해석 숫자: " + decoded.number + "\n" +
+        "마지막 바이트: " + decoded.lastByteHex + "\n" +
         "OK 감지: " + (decoded.ok ? "YES" : "NO");
 
       if (decoded.ok) {
@@ -246,7 +270,7 @@
         resultEl.textContent = "정답!";
         resultEl.className = "result ok";
       } else {
-        resultEl.textContent = `오답 (${currentNumber})`;
+        resultEl.textContent = "오답 (" + currentNumber + ")";
         resultEl.className = "result bad";
       }
     }
@@ -267,32 +291,30 @@
         0x0F: 5,
         0x07: 6
       };
-
       return map[byteValue] ?? 0;
     }
 
     function decodeAbacusPacket(data) {
-      // 지금까지 수집한 패킷 기준
-      // FE-08-[중간 상태들]-00-00-00-00-00-01 형태
-      // 예시:
+      // 현재까지 수집된 패킷 예시
       // 21 -> FE-08-1F-1F-1F-1F-1F-13-17-1F-00-00-00-00-00-01
-      // 여기서 13 = 2, 17 = 1
       //
-      // 현재 2자리 숫자만 보기 위해
-      // data[7] = 십의 자리
-      // data[8] = 일의 자리
-      // 로 우선 가정
+      // 이 기준으로 2자리 숫자를 보기 위해 우선
+      // data[7] = 십의 자리 코드
+      // data[8] = 일의 자리 코드
+      // 로 사용
 
-      const tensCode = data[7];
-      const onesCode = data[8];
+      const tensCode = data[7] ?? 0x1F;
+      const onesCode = data[8] ?? 0x1F;
 
       const tens = mapDigit(tensCode);
       const ones = mapDigit(onesCode);
 
       const number = tens * 10 + ones;
 
-      // 우선 마지막 바이트가 01이면 OK 이벤트로 가정
-      const ok = data[data.length - 1] === 0x01;
+      // 현재 가정:
+      // 마지막 바이트가 0x01이면 OK 이벤트
+      const lastByte = data[data.length - 1] ?? 0x00;
+      const ok = lastByte === 0x01;
 
       return {
         tens,
@@ -300,7 +322,8 @@
         number,
         ok,
         tensHex: "0x" + tensCode.toString(16).toUpperCase().padStart(2, "0"),
-        onesHex: "0x" + onesCode.toString(16).toUpperCase().padStart(2, "0")
+        onesHex: "0x" + onesCode.toString(16).toUpperCase().padStart(2, "0"),
+        lastByteHex: "0x" + lastByte.toString(16).toUpperCase().padStart(2, "0")
       };
     }
 

@@ -65,13 +65,11 @@ const summaryRateEl = document.getElementById("summaryRate");
 const summaryMessageEl = document.getElementById("summaryMessage");
 const restartBtnEl = document.getElementById("restartBtn");
 
-// 효과음
-const hitSound = new Audio("https://actions.google.com/sounds/v1/impacts/crash.ogg");
-const roarSound = new Audio("https://actions.google.com/sounds/v1/animals/lion_roar.ogg");
+// 공룡 울음소리만 사용
+const dinoRoarSound = new Audio("https://actions.google.com/sounds/v1/animals/lion_roar.ogg");
 const winSound = new Audio("https://actions.google.com/sounds/v1/cartoon/concussive_drum_hit.ogg");
 
-hitSound.preload = "auto";
-roarSound.preload = "auto";
+dinoRoarSound.preload = "auto";
 winSound.preload = "auto";
 
 document.getElementById("connectBtn").addEventListener("click", connectBLE);
@@ -100,13 +98,15 @@ function readOptions() {
 }
 
 function updateBossMood() {
-  bossEl.classList.remove("dino-angry", "dino-rage");
+  bossEl.classList.remove("mood-normal", "mood-angry", "mood-rage");
 
   const hpRatio = bossHp / TOTAL_QUESTIONS;
   if (hpRatio <= 0.3) {
-    bossEl.classList.add("dino-rage");
+    bossEl.classList.add("mood-rage");
   } else if (hpRatio <= 0.65) {
-    bossEl.classList.add("dino-angry");
+    bossEl.classList.add("mood-angry");
+  } else {
+    bossEl.classList.add("mood-normal");
   }
 }
 
@@ -161,8 +161,7 @@ function triggerBossHitEffects() {
 
   triggerHitFlash();
   triggerDamagePop("CRITICAL!");
-  playSound(hitSound, 0.6);
-  setTimeout(() => playSound(roarSound, 0.45), 60);
+  playSound(dinoRoarSound, 0.72);
 }
 
 function getRandomValueByDigitLevel() {
@@ -182,7 +181,6 @@ function randomSignedTerm() {
 }
 
 function getAnswerLimit() {
-  // 현재 BLE 디코딩은 0~99까지 제출 가능
   return 99;
 }
 

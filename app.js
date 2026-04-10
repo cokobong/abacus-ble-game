@@ -37,7 +37,10 @@ const currentTermEl = document.getElementById("currentTerm");
 const historyEl = document.getElementById("history");
 const phaseTextEl = document.getElementById("phaseText");
 
-const bossEl = document.getElementById("boss");
+const playerDinoEl = document.getElementById("playerDino");
+const bossDinoEl = document.getElementById("bossDino");
+const centerEffectEl = document.getElementById("centerEffect");
+
 const effectTextEl = document.getElementById("effectText");
 const hpBarFillEl = document.getElementById("hpBarFill");
 const hpTextEl = document.getElementById("hpText");
@@ -65,11 +68,14 @@ const summaryRateEl = document.getElementById("summaryRate");
 const summaryMessageEl = document.getElementById("summaryMessage");
 const restartBtnEl = document.getElementById("restartBtn");
 
-// 공룡 울음소리만 사용
+// 정답 시 공룡 울음소리
 const dinoRoarSound = new Audio("https://actions.google.com/sounds/v1/animals/lion_roar.ogg");
+// 오답 시 약한 충격감
+const wrongHitSound = new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg");
 const winSound = new Audio("https://actions.google.com/sounds/v1/cartoon/concussive_drum_hit.ogg");
 
 dinoRoarSound.preload = "auto";
+wrongHitSound.preload = "auto";
 winSound.preload = "auto";
 
 document.getElementById("connectBtn").addEventListener("click", connectBLE);
@@ -98,15 +104,15 @@ function readOptions() {
 }
 
 function updateBossMood() {
-  bossEl.classList.remove("mood-normal", "mood-angry", "mood-rage");
+  bossDinoEl.classList.remove("mood-normal", "mood-angry", "mood-rage");
 
   const hpRatio = bossHp / TOTAL_QUESTIONS;
   if (hpRatio <= 0.3) {
-    bossEl.classList.add("mood-rage");
+    bossDinoEl.classList.add("mood-rage");
   } else if (hpRatio <= 0.65) {
-    bossEl.classList.add("mood-angry");
+    bossDinoEl.classList.add("mood-angry");
   } else {
-    bossEl.classList.add("mood-normal");
+    bossDinoEl.classList.add("mood-normal");
   }
 }
 
@@ -154,14 +160,46 @@ function triggerDamagePop(text = "CRITICAL!") {
   damagePopEl.classList.add("show");
 }
 
-function triggerBossHitEffects() {
-  bossEl.classList.remove("hit");
-  void bossEl.offsetWidth;
-  bossEl.classList.add("hit");
+function triggerCenterBurst() {
+  centerEffectEl.classList.remove("show");
+  void centerEffectEl.offsetWidth;
+  centerEffectEl.classList.add("show");
+}
 
-  triggerHitFlash();
+function clearBattleClasses() {
+  playerDinoEl.classList.remove("attack-right", "hit");
+  bossDinoEl.classList.remove("attack-left", "hit");
+}
+
+function triggerCorrectAttack() {
+  clearBattleClasses();
+  void playerDinoEl.offsetWidth;
+
+  playerDinoEl.classList.add("attack-right");
+  triggerCenterBurst();
   triggerDamagePop("CRITICAL!");
+  triggerHitFlash();
+
+  setTimeout(() => {
+    bossDinoEl.classList.add("hit");
+  }, 160);
+
   playSound(dinoRoarSound, 0.72);
+}
+
+function triggerWrongAttack() {
+  clearBattleClasses();
+  void bossDinoEl.offsetWidth;
+
+  bossDinoEl.classList.add("attack-left");
+  triggerCenterBurst();
+  triggerDamagePop("OUCH!");
+
+  setTimeout(() => {
+    playerDinoEl.classList.add("hit");
+  }, 160);
+
+  playSound(wrongHitSound, 0.65);
 }
 
 function getRandomValueByDigitLevel() {
@@ -181,6 +219,7 @@ function randomSignedTerm() {
 }
 
 function getAnswerLimit() {
+  // 현재 BLE 디코딩은 0~99 제출 기준
   return 99;
 }
 
@@ -262,8 +301,12 @@ async function startGame() {
   resetJudgeText();
   clearEffects();
 
-  bossEl.classList.remove("dead", "hit");
-  bossEl.style.opacity = "1";
+  clearBattleClasses();
+  playerDinoEl.classList.remove("dead");
+  bossDinoEl.classList.remove("dead");
+
+  playerDinoEl.style.opacity = "1";
+  bossDinoEl.style.opacity = "1";
 
   statusEl.textContent = "게임 시작";
   await nextProblem();
@@ -307,10 +350,10 @@ async function checkAnswer() {
     judgeTextEl.textContent = "정답!";
     judgeTextEl.className = "judge-ok";
 
-    effectTextEl.textContent = "🦖 크앙! 데미지!";
+    effectTextEl.textContent = "플레이어 공격!";
     effectTextEl.className = "effect-text effect-hit";
 
-    triggerBossHitEffects();
+    triggerCorrectAttack();
 
     bossHp -= 1;
     updateHud();
@@ -322,10 +365,10 @@ async function checkAnswer() {
     await sleep(900);
 
     if (bossHp <= 0) {
-      effectTextEl.textContent = "🦖 쓰러졌다!";
+      effectTextEl.textContent = "보스 격파!";
       effectTextEl.className = "effect-text effect-clear";
-      bossEl.classList.remove("hit");
-      bossEl.classList.add("dead");
+      bossDinoEl.classList.remove("hit");
+      bossDinoEl.classList.add("dead");
       currentTermEl.textContent = "WIN";
       phaseTextEl.textContent = `${TOTAL_QUESTIONS}문제를 모두 해결했습니다!`;
       historyEl.textContent = "";
@@ -341,8 +384,10 @@ async function checkAnswer() {
     judgeTextEl.textContent = `오답 (${currentInput})`;
     judgeTextEl.className = "judge-bad";
 
-    effectTextEl.textContent = "다시 계산!";
+    effectTextEl.textContent = "보스 반격!";
     effectTextEl.className = "effect-text";
+
+    triggerWrongAttack();
 
     currentTermEl.textContent = "다시 입력";
     phaseTextEl.textContent = "주판으로 다시 계산해서 OK를 누르세요";
@@ -367,7 +412,7 @@ function showSummary(isWin) {
   summaryRateEl.textContent = rate + "%";
 
   if (isWin) {
-    summaryMessageEl.textContent = "티라노 보스를 쓰러뜨렸습니다. 아주 잘했습니다!";
+    summaryMessageEl.textContent = "플레이어 공룡이 이겼습니다. 아주 잘했습니다!";
   } else {
     summaryMessageEl.textContent = "이번 결과를 확인하고 다시 도전해보세요.";
   }

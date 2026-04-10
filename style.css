@@ -9,7 +9,6 @@
   --warn: #ffbf1f;
   --ok: #72f0a4;
   --bad: #ff8a8a;
-  --hit: #ff7676;
 }
 
 * {
@@ -245,29 +244,38 @@ button {
   color: #e5e7eb;
 }
 
-.dino {
+/* 이미지 보스 */
+.boss-image-wrap {
   position: relative;
-  width: 176px;
-  height: 208px;
-  transition: transform 0.15s ease, filter 0.2s ease;
-  transform-origin: center bottom;
+  width: 240px;
+  height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.dino.hit {
+#bossImg {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  transition: transform 0.15s ease, filter 0.2s ease, opacity 0.5s ease;
+}
+
+.boss-image-wrap.hit #bossImg {
   animation: dinoHit 0.45s ease;
+}
+
+.boss-image-wrap.dead #bossImg {
+  animation: dinoDead 1s ease forwards;
 }
 
 @keyframes dinoHit {
   0%   { transform: translateX(0) scale(1); filter: brightness(1); }
   15%  { transform: translateX(-14px) scale(1.06); filter: brightness(1.8); }
-  30%  { transform: translateX(12px) scale(0.96); filter: brightness(0.7); }
+  30%  { transform: translateX(12px) scale(0.96); filter: brightness(0.8); }
   45%  { transform: translateX(-10px) scale(1.04); filter: brightness(1.5); }
-  60%  { transform: translateX(8px) scale(0.98); filter: brightness(0.85); }
+  60%  { transform: translateX(8px) scale(0.98); filter: brightness(0.9); }
   100% { transform: translateX(0) scale(1); filter: brightness(1); }
-}
-
-.dino.dead {
-  animation: dinoDead 1s ease forwards;
 }
 
 @keyframes dinoDead {
@@ -275,165 +283,17 @@ button {
   100% { opacity: 0; transform: scale(0.2) rotate(18deg) translateY(80px); }
 }
 
-.dino-body {
-  position: absolute;
-  left: 44px;
-  top: 74px;
-  width: 92px;
-  height: 78px;
-  background: #3bbf6d;
-  border: 4px solid #1d6f3e;
-  border-radius: 46px 46px 30px 30px;
+/* 표정/색감 단계 */
+.boss-image-wrap.mood-normal #bossImg {
+  filter: saturate(1) brightness(1);
 }
 
-.dino-tail {
-  position: absolute;
-  left: 6px;
-  top: 100px;
-  width: 70px;
-  height: 18px;
-  background: #3bbf6d;
-  border: 4px solid #1d6f3e;
-  border-radius: 20px;
-  transform: rotate(-18deg);
+.boss-image-wrap.mood-angry #bossImg {
+  filter: saturate(1.15) brightness(1.02) contrast(1.05) hue-rotate(-8deg);
 }
 
-.dino-neck {
-  position: absolute;
-  left: 100px;
-  top: 44px;
-  width: 30px;
-  height: 58px;
-  background: #3bbf6d;
-  border: 4px solid #1d6f3e;
-  border-radius: 18px;
-  transform: rotate(-18deg);
-}
-
-.dino-head {
-  position: absolute;
-  left: 104px;
-  top: 8px;
-  width: 66px;
-  height: 50px;
-  background: #3bbf6d;
-  border: 4px solid #1d6f3e;
-  border-radius: 26px 28px 22px 20px;
-  transform: rotate(-8deg);
-}
-
-.dino-mouth {
-  position: absolute;
-  left: 22px;
-  bottom: 8px;
-  width: 28px;
-  height: 5px;
-  background: #132219;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-}
-
-.dino-eye {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  width: 12px;
-  height: 12px;
-  background: #fff;
-  border-radius: 50%;
-  overflow: hidden;
-  transition: all 0.2s ease;
-}
-
-.dino-eye::after {
-  content: "";
-  position: absolute;
-  top: 2px;
-  left: 3px;
-  width: 6px;
-  height: 6px;
-  background: #111;
-  border-radius: 50%;
-}
-
-.dino-arm {
-  position: absolute;
-  top: 108px;
-  width: 16px;
-  height: 38px;
-  background: #3bbf6d;
-  border: 4px solid #1d6f3e;
-  border-radius: 14px;
-}
-
-.dino-arm.left { left: 94px; transform: rotate(22deg); }
-.dino-arm.right { left: 118px; transform: rotate(-8deg); }
-
-.dino-leg {
-  position: absolute;
-  bottom: 14px;
-  width: 20px;
-  height: 54px;
-  background: #3bbf6d;
-  border: 4px solid #1d6f3e;
-  border-radius: 16px;
-}
-
-.dino-leg.left { left: 68px; }
-.dino-leg.right { left: 104px; }
-
-.dino-angry .dino-head {
-  background: #5bcf48;
-}
-
-.dino-angry .dino-eye {
-  background: #ffd2d2;
-}
-
-.dino-angry .dino-eye::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -1px;
-  width: 14px;
-  height: 4px;
-  background: #111;
-  transform: rotate(-18deg);
-  transform-origin: left center;
-}
-
-.dino-angry .dino-mouth {
-  height: 6px;
-  background: #6d1111;
-}
-
-.dino-rage .dino-head {
-  background: #78e944;
-  box-shadow: 0 0 18px rgba(120, 233, 68, 0.35);
-}
-
-.dino-rage .dino-eye {
-  background: #ffb3b3;
-  transform: scale(1.15);
-}
-
-.dino-rage .dino-eye::before {
-  content: "";
-  position: absolute;
-  top: -1px;
-  left: -2px;
-  width: 16px;
-  height: 5px;
-  background: #111;
-  transform: rotate(-28deg);
-  transform-origin: left center;
-}
-
-.dino-rage .dino-mouth {
-  height: 8px;
-  width: 32px;
-  background: #8b0000;
-  box-shadow: 0 0 8px rgba(255, 0, 0, 0.25);
+.boss-image-wrap.mood-rage #bossImg {
+  filter: saturate(1.3) brightness(1.06) contrast(1.1) hue-rotate(-14deg) drop-shadow(0 0 14px rgba(255, 80, 80, 0.35));
 }
 
 .effect-text {
@@ -467,7 +327,7 @@ button {
 
 .damage-pop {
   position: absolute;
-  top: 30px;
+  top: 24px;
   left: 50%;
   transform: translateX(-50%);
   font-size: 34px;
@@ -496,26 +356,6 @@ button {
     opacity: 0;
     transform: translateX(-50%) translateY(-40px) scale(1);
   }
-}
-
-.dino.hit .dino-leg.left {
-  animation: legKickLeft 0.45s ease;
-}
-
-.dino.hit .dino-leg.right {
-  animation: legKickRight 0.45s ease;
-}
-
-@keyframes legKickLeft {
-  0%   { transform: rotate(0deg); }
-  30%  { transform: rotate(12deg); }
-  100% { transform: rotate(0deg); }
-}
-
-@keyframes legKickRight {
-  0%   { transform: rotate(0deg); }
-  30%  { transform: rotate(-12deg); }
-  100% { transform: rotate(0deg); }
 }
 
 .input-box {
@@ -643,10 +483,10 @@ pre {
     font-size: 16px;
   }
 
-  .dino {
-    width: 150px;
-    height: 178px;
-  }
+  .boss-image-wrap {
+    width: 190px;
+    height: 160px;
+      }
 
   #currentInput {
     font-size: 70px;

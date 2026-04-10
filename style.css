@@ -148,7 +148,7 @@ button {
 
 .play-stage {
   display: grid;
-  grid-template-columns: 1.2fr 0.9fr 0.9fr;
+  grid-template-columns: 1.2fr 1.2fr 0.9fr;
   gap: 14px;
   align-items: stretch;
   min-height: 360px;
@@ -193,17 +193,15 @@ button {
   line-height: 1.4;
 }
 
-.boss-box {
+.battle-box {
   min-height: 320px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  position: relative;
-  overflow: hidden;
 }
 
-.boss-name {
+.battle-name {
   color: #ffcf66;
   font-size: 18px;
   font-weight: bold;
@@ -212,7 +210,7 @@ button {
 
 .hp-wrap {
   width: 100%;
-  max-width: 240px;
+  max-width: 280px;
   margin-bottom: 12px;
 }
 
@@ -244,38 +242,63 @@ button {
   color: #e5e7eb;
 }
 
-/* 이미지 보스 */
-.boss-image-wrap {
+.battle-field {
   position: relative;
-  width: 240px;
-  height: 220px;
+  width: 100%;
+  max-width: 440px;
+  min-height: 210px;
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
+  gap: 12px;
 }
 
-#bossImg {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  transition: transform 0.15s ease, filter 0.2s ease, opacity 0.5s ease;
+.battle-dino {
+  width: 170px;
+  transition: transform 0.2s ease, filter 0.2s ease, opacity 0.5s ease;
 }
 
-.boss-image-wrap.hit #bossImg {
-  animation: dinoHit 0.45s ease;
+.battle-dino img {
+  width: 100%;
+  height: auto;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
-.boss-image-wrap.dead #bossImg {
+.battle-dino.left.attack-right {
+  animation: attackRight 0.45s ease;
+}
+
+.battle-dino.right.attack-left {
+  animation: attackLeft 0.45s ease;
+}
+
+.battle-dino.hit {
+  animation: gotHit 0.35s ease;
+}
+
+.battle-dino.dead {
   animation: dinoDead 1s ease forwards;
 }
 
-@keyframes dinoHit {
-  0%   { transform: translateX(0) scale(1); filter: brightness(1); }
-  15%  { transform: translateX(-14px) scale(1.06); filter: brightness(1.8); }
-  30%  { transform: translateX(12px) scale(0.96); filter: brightness(0.8); }
-  45%  { transform: translateX(-10px) scale(1.04); filter: brightness(1.5); }
-  60%  { transform: translateX(8px) scale(0.98); filter: brightness(0.9); }
-  100% { transform: translateX(0) scale(1); filter: brightness(1); }
+@keyframes attackRight {
+  0% { transform: translateX(0) scale(1); }
+  40% { transform: translateX(50px) scale(1.08); }
+  100% { transform: translateX(0) scale(1); }
+}
+
+@keyframes attackLeft {
+  0% { transform: translateX(0) scale(1); }
+  40% { transform: translateX(-50px) scale(1.08); }
+  100% { transform: translateX(0) scale(1); }
+}
+
+@keyframes gotHit {
+  0% { transform: translateX(0); filter: brightness(1); }
+  30% { transform: translateX(10px); filter: brightness(1.5); }
+  60% { transform: translateX(-8px); filter: brightness(0.8); }
+  100% { transform: translateX(0); filter: brightness(1); }
 }
 
 @keyframes dinoDead {
@@ -283,17 +306,39 @@ button {
   100% { opacity: 0; transform: scale(0.2) rotate(18deg) translateY(80px); }
 }
 
-/* 표정/색감 단계 */
-.boss-image-wrap.mood-normal #bossImg {
+.battle-dino.right.mood-normal img {
   filter: saturate(1) brightness(1);
 }
 
-.boss-image-wrap.mood-angry #bossImg {
+.battle-dino.right.mood-angry img {
   filter: saturate(1.15) brightness(1.02) contrast(1.05) hue-rotate(-8deg);
 }
 
-.boss-image-wrap.mood-rage #bossImg {
+.battle-dino.right.mood-rage img {
   filter: saturate(1.3) brightness(1.06) contrast(1.1) hue-rotate(-14deg) drop-shadow(0 0 14px rgba(255, 80, 80, 0.35));
+}
+
+.battle-center-effect {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 56px;
+  height: 56px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(255,210,80,0.8) 35%, rgba(255,120,120,0.25) 65%, rgba(255,120,120,0) 100%);
+}
+
+.battle-center-effect.show {
+  animation: centerBurst 0.45s ease;
+}
+
+@keyframes centerBurst {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.2); }
+  30% { opacity: 1; transform: translate(-50%, -50%) scale(1.15); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.6); }
 }
 
 .effect-text {
@@ -327,7 +372,7 @@ button {
 
 .damage-pop {
   position: absolute;
-  top: 24px;
+  top: 18px;
   left: 50%;
   transform: translateX(-50%);
   font-size: 34px;
@@ -461,12 +506,12 @@ pre {
   }
 
   .play-stage {
-    grid-template-columns: 1.2fr 0.9fr 0.9fr;
+    grid-template-columns: 1.1fr 1.15fr 0.85fr;
     min-height: 250px;
   }
 
   .problem-stage,
-  .boss-box,
+  .battle-box,
   .input-box {
     min-height: 240px;
   }
@@ -483,16 +528,20 @@ pre {
     font-size: 16px;
   }
 
-  .boss-image-wrap {
-    width: 190px;
-    height: 160px;
-      }
+  .battle-dino {
+    width: 135px;
+  }
+
+  .battle-field {
+    max-width: 360px;
+    min-height: 160px;
+  }
 
   #currentInput {
     font-size: 70px;
   }
 
-  .boss-name {
+  .battle-name {
     font-size: 16px;
   }
 

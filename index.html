@@ -3,17 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>주판 속산 공룡 보스전</title>
+  <title>주판 공룡 전투 게임</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div id="hitFlash" class="hit-flash"></div>
 
   <div class="wrap">
-    <h1>주판 속산 공룡 보스전</h1>
+    <h1>주판 공룡 전투 게임</h1>
     <div class="sub">
-      상단에서 난이도를 정한 뒤 아래로 내려 플레이하세요.<br />
-      가로 화면에서 문제, 공룡, 입력값이 한 화면에 보이도록 최적화했습니다.
+      숫자를 순서대로 보고 계산한 뒤 주판으로 답을 만들고 OK 버튼을 누르세요.<br />
+      정답이면 왼쪽 공룡이 공격하고, 오답이면 오른쪽 공룡이 공격합니다.
     </div>
 
     <div class="card">
@@ -77,7 +77,7 @@
           <div class="hud-value"><span id="problemIndex">0</span> / <span id="problemTotal">20</span></div>
         </div>
         <div class="hud-box">
-          <div class="hud-label">남은 공룡 체력</div>
+          <div class="hud-label">보스 체력</div>
           <div class="hud-value" id="bossHp">20</div>
         </div>
         <div class="hud-box">
@@ -101,19 +101,28 @@
           </div>
         </div>
 
-        <div class="boss-box">
-          <div class="boss-name">티라노 보스</div>
+        <div class="battle-box">
+          <div class="battle-name">공룡 전투</div>
 
           <div class="hp-wrap">
-            <div class="hp-label">체력</div>
+            <div class="hp-label">보스 체력</div>
             <div class="hp-bar-bg">
               <div id="hpBarFill" class="hp-bar-fill"></div>
             </div>
             <div id="hpText" class="hp-text">20 / 20</div>
           </div>
 
-          <div id="boss" class="boss-image-wrap mood-normal">
-            <img id="bossImg" src="dino-boss.png" alt="공룡 보스">
+          <div class="battle-field">
+            <div id="playerDino" class="battle-dino left">
+              <img src="player-dino.png" alt="플레이어 공룡" />
+            </div>
+
+            <div class="battle-center-effect" id="centerEffect"></div>
+
+            <div id="bossDino" class="battle-dino right mood-normal">
+              <img src="boss-dino.png" alt="보스 공룡" />
+            </div>
+
             <div id="damagePop" class="damage-pop">CRITICAL!</div>
           </div>
 
